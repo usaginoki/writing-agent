@@ -1,0 +1,16 @@
+jobs/*
+!jobs/.gitkeep
+.venv/
+__pycache__/
+
+# Copyrighted source material: kept locally, never published
+vault/*/_source/*.pdf
+vault/*/_source/*.epub
+vault/*/_source/*.docx
+vault/*/_source/text/
+evals/cases/
+
+# Volatile local state
+vault/.obsidian/workspace*.json
+.playwright-mcp/
+jobs/.guard-debug.log

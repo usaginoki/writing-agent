@@ -1,0 +1,11 @@
+{
+  "name": "writing-local",
+  "owner": { "name": "local" },
+  "plugins": [
+    {
+      "name": "writing",
+      "source": "./plugin",
+      "description": "Writing, rewriting and editing agent grounded in a style knowledge vault (Williams & Bizup's Style, and future sources)."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "collapse-filter": true,
+  "search": "-path:_source -file:_conventions",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": false,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "file:\"00 Index\"",
+      "color": {
+        "a": 1,
+        "rgb": 14722342
+      }
+    },
+    {
+      "query": "path:lessons",
+      "color": {
+        "a": 1,
+        "rgb": 14042437
+      }
+    },
+    {
+      "query": "path:principles",
+      "color": {
+        "a": 1,
+        "rgb": 5016565
+      }
+    },
+    {
+      "query": "path:concepts",
+      "color": {
+        "a": 1,
+        "rgb": 4041325
+      }
+    },
+    {
+      "query": "path:diagnostics",
+      "color": {
+        "a": 1,
+        "rgb": 15234107
+      }
+    },
+    {
+      "query": "path:patterns",
+      "color": {
+        "a": 1,
+        "rgb": 10181046
+      }
+    }
+  ],
+  "collapse-display": true,
+  "showArrow": false,
+  "textFadeMultiplier": 0,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": true,
+  "centerStrength": 0.518713248970312,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 0.5965147750357821,
+  "close": true
+}

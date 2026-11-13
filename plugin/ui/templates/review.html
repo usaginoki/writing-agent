@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Writing Review</title>
+<style>
+:root {
+  --paper: #f7f3ea; --card: #fffdf8; --ink: #24211c; --muted: #6f685c; --rule: #e2dccd;
+  --accent: #8a3b12; --accent-soft: #f3e3d6; --del: #b3261e; --del-bg: #fbe4e1;
+  --ins: #1f6b3a; --ins-bg: #ddf1e2; --focus: #2f5d8a;
+  --serif: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino, Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1c1a17; --card: #25221e; --ink: #ece6da; --muted: #a39a8a; --rule: #3a352e;
+    --accent: #e09a6b; --accent-soft: #3a2a1f; --del: #f19a92; --del-bg: #4a2522;
+    --ins: #8fd6a5; --ins-bg: #1f3a28; --focus: #8fb6e0;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.6 var(--serif); }
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 140px; }
+header h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 6px; font-weight: 600; letter-spacing: -0.01em; }
+header p { color: var(--muted); margin: 0 0 28px; }
+.kicker { font: 600 0.72rem/1 var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+section.block { margin: 36px 0; }
+section.block > h2 { font-size: 1.25rem; margin: 0 0 14px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+.card { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 20px; margin: 14px 0; min-width: 0; }
+.card.done { border-left: 4px solid var(--ins); }
+.meta { font: 600 0.75rem/1.3 var(--sans); color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.meta .id { color: var(--accent); }
+.q-text { font-size: 1.05rem; margin: 0 0 8px; }
+.context { color: var(--muted); font-size: 0.95rem; border-left: 3px solid var(--rule); padding-left: 12px; margin: 8px 0 12px; white-space: pre-wrap; }
+.opts { display: grid; gap: 8px; }
+.opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 8px; cursor: pointer; background: transparent; min-width: 0; }
+.opt:hover { border-color: var(--accent); }
+.opt input { margin-top: 5px; accent-color: var(--accent); }
+.opt .label { font-weight: 600; }
+.opt .detail { color: var(--muted); font-size: 0.93rem; }
+.rec { font: 600 0.68rem/1 var(--sans); background: var(--accent-soft); color: var(--accent); padding: 3px 6px; border-radius: 4px; margin-left: 6px; letter-spacing: 0.05em; text-transform: uppercase; vertical-align: 2px; }
+textarea, input[type=text] { width: 100%; font: 0.95rem/1.5 var(--serif); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; resize: vertical; }
+textarea:focus, input:focus, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.small { font-size: 0.85rem; color: var(--muted); }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin: 10px 0; }
+@media (max-width: 680px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+.pane { background: var(--paper); border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+.pane h4 { margin: 0 0 6px; font: 600 0.7rem/1 var(--sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+del { background: var(--del-bg); color: var(--del); text-decoration: line-through; text-decoration-thickness: 1px; }
+ins { background: var(--ins-bg); color: var(--ins); text-decoration: none; }
+.reason { font: 0.85rem/1.4 var(--sans); color: var(--muted); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.seg { font: 600 0.85rem/1 var(--sans); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--rule); background: transparent; color: var(--ink); cursor: pointer; }
+.seg[aria-pressed=true].accept, .seg[aria-pressed=true].keep { background: var(--ins-bg); border-color: var(--ins); color: var(--ins); }
+.seg[aria-pressed=true].reject, .seg[aria-pressed=true].revert { background: var(--del-bg); border-color: var(--del); color: var(--del); }
+.seg[aria-pressed=true].edit, .seg[aria-pressed=true].adjust { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.hidden { display: none; }
+.outline { list-style: none; padding: 0; margin: 8px 0 0; counter-reset: s; }
+.outline li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; margin: 6px 0; background: var(--paper); min-width: 0; }
+.outline li::before { counter-increment: s; content: counter(s); font: 600 0.8rem/1.9 var(--sans); color: var(--accent); min-width: 1.2em; }
+.outline li .t { font-weight: 600; } .outline li .p { color: var(--muted); font-size: 0.93rem; }
+.outline li .grow { flex: 1; min-width: 0; }
+.outline.reorderable li { cursor: grab; }
+.outline li.dragging { opacity: 0.4; }
+.mv { font: 0.8rem var(--sans); border: 1px solid var(--rule); background: var(--card); color: var(--ink); border-radius: 4px; cursor: pointer; padding: 2px 6px; }
+.variant { white-space: pre-wrap; }
+.intent { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; font-size: 0.95rem; margin-bottom: 10px; }
+.bar { position: fixed; inset: auto 0 0 0; background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(6px); border-top: 1px solid var(--rule); }
+.bar-inner { max-width: 860px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar .grow { flex: 1; min-width: 200px; }
+.bar textarea { min-height: 38px; height: 38px; }
+.progress { font: 600 0.8rem var(--sans); color: var(--muted); white-space: nowrap; }
+.submit { font: 600 0.95rem var(--sans); background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 10px 18px; cursor: pointer; }
+.submit:disabled { opacity: 0.5; cursor: default; }
+label.remember { font: 0.8rem var(--sans); color: var(--muted); display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+.thanks { text-align: center; padding: 80px 16px; }
+.thanks h1 { font-size: 1.8rem; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div class="bar" id="bar">
+  <div class="bar-inner">
+    <div class="grow"><textarea id="comment" placeholder="Anything else? (general feedback)"></textarea></div>
+    <label class="remember" title="Save this comment to the writer's memory as a lasting preference"><input type="checkbox" id="remember"> remember as preference</label>
+    <span class="progress" id="progress"></span>
+    <button class="submit" id="submit">Send to writer</button>
+  </div>
+</div>
+<script>
+const DATA = /*__DATA__*/null;
+const state = { sections: [] };
+const app = document.getElementById("app");
+const put = (el, ...kids) => { el.append(...kids.flat().filter(k => k !== null && k !== undefined)); return el; };
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid !== null && kid !== undefined) el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  return el;
+};
+
+// Word-level diff (LCS over word tokens) with semantic cleanup → [beforeNode, afterNode]
+function wordDiff(a, b) {
+  const tok = s => s.match(/\S+\s*|\s+/g) || [];
+  const ta = tok(a), tb = tok(b), n = ta.length, m = tb.length;
+  if (n * m > 400000) return [h("span", {}, a), h("span", {}, b)];
+  const key = s => s.trim();
+  const dp = Array.from({ length: n + 1 }, () => new Uint32Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    dp[i][j] = key(ta[i]) === key(tb[j]) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  // ops: [kind, beforeText, afterText]  kind = eq | del | ins
+  const ops = [];
+  const add = (k, x, y) => { const l = ops[ops.length - 1]; if (l && l[0] === k) { l[1] += x; l[2] += y; } else ops.push([k, x, y]); };
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (key(ta[i]) === key(tb[j])) { add("eq", ta[i], tb[j]); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) add("del", ta[i++], "");
+    else add("ins", "", tb[j++]);
+  }
+  while (i < n) add("del", ta[i++], "");
+  while (j < m) add("ins", "", tb[j++]);
+  // cleanup: an equal island of <=2 short words between changes becomes part of the change
+  const isChange = o => o && o[0] !== "eq";
+  for (let k = 1; k < ops.length - 1; k++) {
+    const o = ops[k];
+    if (o[0] === "eq" && isChange(ops[k - 1]) && isChange(ops[k + 1]) && o[1].trim().split(/\s+/).length <= 2 && o[1].trim().length <= 12) {
+      ops.splice(k, 1, ["del", o[1], ""], ["ins", "", o[2]]); k++;
+    }
+  }
+  const A = h("span"), B = h("span");
+  // group consecutive del/ins so each side shows one contiguous change
+  for (let k = 0; k < ops.length; k++) {
+    if (ops[k][0] === "eq") { A.append(ops[k][1]); B.append(ops[k][2]); continue; }
+    let x = "", y = "";
+    while (k < ops.length && ops[k][0] !== "eq") { x += ops[k][1]; y += ops[k][2]; k++; }
+    k--;
+    if (x) A.append(h("del", {}, x));
+    if (y) B.append(h("ins", {}, y));
+  }
+  return [A, B];
+}
+
+function segButtons(choices, current, onPick) {
+  const wrap = h("div", { class: "actions" });
+  const btns = choices.map(([key, label]) => {
+    const b = h("button", { type: "button", class: "seg " + key, "aria-pressed": String(current === key), onclick: () => { btns.forEach(x => x.setAttribute("aria-pressed", "false")); b.setAttribute("aria-pressed", "true"); onPick(key); } }, label);
+    return b;
+  });
+  wrap.append(...btns);
+  return wrap;
+}
+
+const renderers = {
+  questions(sec, out) {
+    out.answers = {};
+    return sec.items.map(q => {
+      const card = h("div", { class: "card" });
+      const name = "q_" + q.id;
+      const ans = () => (out.answers[q.id] ||= { choice: q.multi ? [] : null, text: "" });
+      const opts = (q.options || []).map(o => h("label", { class: "opt" },
+        h("input", { type: q.multi ? "checkbox" : "radio", name, value: o.key, onchange: e => {
+          const a = ans();
+          if (q.multi) { a.choice = [...card.querySelectorAll("input:checked")].map(x => x.value); }
+          else a.choice = e.target.value;
+          card.classList.add("done"); update();
+        } }),
+        h("div", {}, h("span", { class: "label" }, o.label), o.key === q.recommended ? h("span", { class: "rec" }, "recommended") : null,
+          o.detail ? h("div", { class: "detail" }, o.detail) : null)));
+      put(card, 
+        h("div", { class: "meta" }, h("span", { class: "id" }, q.id), q.topic ? h("span", {}, q.topic) : null),
+        h("p", { class: "q-text" }, q.text),
+        q.context ? h("div", { class: "context" }, q.context) : null,
+        h("div", { class: "opts" }, opts),
+        q.allow_text !== false ? h("div", { style: "margin-top:10px" }, h("textarea", { rows: 2, placeholder: "Your own answer or a note (optional)", oninput: e => { ans().text = e.target.value; if (e.target.value) card.classList.add("done"); update(); } })) : null);
+      card.dataset.counts = "1";
+      return card;
+    });
+  },
+  hunks(sec, out) {
+    out.decisions = {};
+    return sec.items.map(it => {
+      const card = h("div", { class: "card" });
+      const [A, B] = wordDiff(it.before || "", it.after || "");
+      const editBox = h("textarea", { class: "hidden", rows: 5, oninput: e => { out.decisions[it.id].text = e.target.value; } }, it.after || "");
+      const note = h("input", { type: "text", placeholder: "Comment (optional)", style: "margin-top:8px", oninput: e => { (out.decisions[it.id] ||= { action: "accept" }).comment = e.target.value; } });
+      put(card, 
+        h("div", { class: "meta" }, h("span", { class: "id" }, it.id), it.reason ? h("span", { class: "reason" }, it.reason) : null),
+        h("div", { class: "pair" }, h("div", { class: "pane" }, h("h4", {}, "Before"), A), h("div", { class: "pane" }, h("h4", {}, "After"), B)),
+        segButtons([["accept", "Accept"], ["reject", "Reject"], ["edit", "Edit…"]], null, k => {
+          const d = (out.decisions[it.id] ||= {}); d.action = k;
+          if (k === "edit") { editBox.classList.remove("hidden"); d.text = editBox.value; } else { editBox.classList.add("hidden"); delete d.text; }
+          card.classList.add("done"); update();
+        }),
+        editBox, note);
+      card.dataset.counts = "1";
+      return card;
+    });
+  },
+  structure(sec, out) {
+    const card = h("div", { class: "card" });
+    const opts = sec.options.map(o => {
+      const list = h("ol", { class: "outline" + (sec.allow_reorder ? " reorderable" : "") },
+        o.sections.map(s => outlineItem(s, sec.allow_reorder, () => { if (out.choice === o.key) out.order = readOrder(list); })));
+      if (sec.allow_reorder) enableDrag(list, () => { if (out.choice === o.key) out.order = readOrder(list); });
+      return h("label", { class: "opt", style: "display:block" },
+        h("div", { style: "display:flex;gap:10px;align-items:flex-start" },
+          h("input", { type: "radio", name: "structure", value: o.key, onchange: () => { out.choice = o.key; out.order = readOrder(list); card.classList.add("done"); update(); } }),
+          h("div", { style: "flex:1;min-width:0" }, h("span", { class: "label" }, `${o.key} · ${o.title}`),
+            o.rationale ? h("div", { class: "detail" }, o.rationale) : null, list)));
+    });
+    put(card, h("div", { class: "opts" }, opts),
+      sec.allow_reorder ? h("p", { class: "small" }, "Drag sections (or use ↑ ↓) to reorder the chosen outline.") : null,
+      h("textarea", { rows: 2, placeholder: "Comment on structure (optional)", oninput: e => { out.comment = e.target.value; } }));
+    card.dataset.counts = "1";
+    return [card];
+  },
+  meaning(sec, out) {
+    out.verdicts = {};
+    const items = sec.items.map(it => {
+      const card = h("div", { class: "card" });
+      const [A, B] = wordDiff(it.original || "", it.revised || "");
+      const adj = h("textarea", { class: "hidden", rows: 3, placeholder: "Your wording", oninput: e => { out.verdicts[it.id].text = e.target.value; } }, it.revised || "");
+      put(card, 
+        h("div", { class: "meta" }, h("span", { class: "id" }, it.id), h("span", {}, it.concern || "")),
+        h("div", { class: "pair" }, h("div", { class: "pane" }, h("h4", {}, "You wrote"), A), h("div", { class: "pane" }, h("h4", {}, "Revision"), B)),
+        h("p", { class: "q-text" }, "Does the revision preserve what you meant?"),
+        segButtons([["keep", "Yes, keep revision"], ["revert", "No, revert"], ["adjust", "Adjust…"]], null, k => {
+          const v = (out.verdicts[it.id] ||= {}); v.verdict = k;
+          if (k === "adjust") { adj.classList.remove("hidden"); v.text = adj.value; } else { adj.classList.add("hidden"); delete v.text; }
+          card.classList.add("done"); update();
+        }), adj);
+      card.dataset.counts = "1";
+      return card;
+    });
+    return [sec.intent ? h("div", { class: "intent" }, h("strong", {}, "Intent: "), sec.intent) : null, ...items];
+  },
+  variants(sec, out) {
+    out.choices = {};
+    return sec.groups.map(g => {
+      const card = h("div", { class: "card" });
+      const c = () => (out.choices[g.id] ||= {});
+      put(card, 
+        h("div", { class: "meta" }, h("span", { class: "id" }, g.id)),
+        g.context ? h("div", { class: "context" }, g.context) : null,
+        h("div", { class: "opts" }, g.options.map(o => h("label", { class: "opt" },
+          h("input", { type: "radio", name: "v_" + g.id, value: o.key, onchange: () => { c().choice = o.key; card.classList.add("done"); update(); } }),
+          h("div", { style: "min-width:0" }, h("div", { class: "meta" }, `Option ${o.key}`, o.note ? h("span", {}, "· " + o.note) : null), h("div", { class: "variant" }, o.text))))),
+        h("input", { type: "text", placeholder: "Merge or tweak instructions (optional)", style: "margin-top:10px", oninput: e => { c().comment = e.target.value; } }));
+      card.dataset.counts = "1";
+      return card;
+    });
+  },
+};
+
+function outlineItem(s, reorder, changed) {
+  const li = h("li", { draggable: reorder ? "true" : null, "data-title": s.title },
+    h("div", { class: "grow" }, h("div", { class: "t" }, s.title), s.point ? h("div", { class: "p" }, s.point) : null));
+  if (reorder) li.append(h("span", {},
+    h("button", { type: "button", class: "mv", "aria-label": "move up", onclick: e => { e.preventDefault(); li.previousElementSibling?.before(li); changed(); } }, "↑"), " ",
+    h("button", { type: "button", class: "mv", "aria-label": "move down", onclick: e => { e.preventDefault(); li.nextElementSibling?.after(li); changed(); } }, "↓")));
+  return li;
+}
+function readOrder(list) { return [...list.children].map(li => li.dataset.title); }
+function enableDrag(list, changed) {
+  let dragged = null;
+  list.addEventListener("dragstart", e => { dragged = e.target.closest("li"); dragged.classList.add("dragging"); });
+  list.addEventListener("dragend", () => { dragged?.classList.remove("dragging"); dragged = null; changed(); });
+  list.addEventListener("dragover", e => {
+    e.preventDefault();
+    const over = e.target.closest("li");
+    if (!dragged || !over || over === dragged) return;
+    const r = over.getBoundingClientRect();
+    (e.clientY < r.top + r.height / 2) ? over.before(dragged) : over.after(dragged);
+  });
+}
+
+function update() {
+  const all = app.querySelectorAll("[data-counts]").length;
+  const done = app.querySelectorAll("[data-counts].done").length;
+  document.getElementById("progress").textContent = all ? `${done} / ${all} answered` : "";
+}
+
+function render() {
+  if (!DATA) { app.append(h("p", {}, "No data.")); return; }
+  document.title = DATA.title || "Writing Review";
+  app.append(h("header", {}, h("div", { class: "kicker" }, "Writer · review"), h("h1", {}, DATA.title || "Review"), DATA.intro ? h("p", {}, DATA.intro) : null));
+  for (const sec of DATA.sections || []) {
+    const out = { type: sec.type };
+    state.sections.push(out);
+    const r = renderers[sec.type];
+    if (!r) continue;
+    app.append(h("section", { class: "block" }, sec.title ? h("h2", {}, sec.title) : null, r(sec, out)));
+  }
+  update();
+}
+
+document.getElementById("submit").addEventListener("click", async () => {
+  const btn = document.getElementById("submit");
+  btn.disabled = true; btn.textContent = "Sending…";
+  const payload = { comment: document.getElementById("comment").value, remember: document.getElementById("remember").checked, sections: state.sections };
+  try {
+    const r = await fetch("/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    if (!r.ok) throw new Error(r.status);
+    document.getElementById("bar").remove();
+    app.replaceChildren(h("div", { class: "thanks" }, h("h1", {}, "Sent to the writer."), h("p", { class: "small" }, "You can close this tab. The writer continues in your terminal.")));
+  } catch (e) {
+    btn.disabled = false; btn.textContent = "Send to writer";
+    alert("Couldn't reach the writer (it may have timed out). Answer in the terminal instead.");
+  }
+});
+render();
+</script>
+</body>
+</html>

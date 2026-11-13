@@ -1,0 +1,19 @@
+[
+ {"id":"L00","title":"Front - Ten Principles and Preface","start":2,"end":9,"book":"front"},
+ {"id":"L01","title":"Understanding Style","start":15,"end":22,"book":"1-8"},
+ {"id":"L02","title":"Correctness","start":23,"end":41,"book":"9-27"},
+ {"id":"L03","title":"Actions","start":42,"end":59,"book":"28-45"},
+ {"id":"L04","title":"Characters","start":60,"end":79,"book":"46-65"},
+ {"id":"L05","title":"Cohesion and Coherence","start":80,"end":93,"book":"66-79"},
+ {"id":"L06","title":"Emphasis","start":94,"end":111,"book":"80-97"},
+ {"id":"L07","title":"Motivation","start":112,"end":126,"book":"98-112"},
+ {"id":"L08","title":"Global Coherence","start":127,"end":139,"book":"113-125"},
+ {"id":"L09","title":"Concision","start":140,"end":156,"book":"126-142"},
+ {"id":"L10","title":"Shape","start":157,"end":181,"book":"143-167"},
+ {"id":"L11","title":"Elegance","start":182,"end":201,"book":"168-187"},
+ {"id":"L12","title":"The Ethics of Style","start":202,"end":220,"book":"188-206"},
+ {"id":"A1","title":"Appendix I - Punctuation","start":221,"end":243,"book":"207-229"},
+ {"id":"A2","title":"Appendix II - Using Sources","start":244,"end":252,"book":"230-238"},
+ {"id":"G","title":"Glossary","start":253,"end":260,"book":"239-246"},
+ {"id":"SA","title":"Suggested Answers","start":261,"end":269,"book":"247-255"}
+]

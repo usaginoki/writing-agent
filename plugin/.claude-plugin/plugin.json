@@ -1,0 +1,14 @@
+{
+  "name": "writing",
+  "version": "0.1.0",
+  "description": "Writing/editing agent: clear, concise, well-structured prose. Job workspaces, quick/thorough modes, trust mode, meaning checks, optional browser UI, persistent preferences.",
+  "userConfig": {
+    "home_dir": {
+      "type": "directory",
+      "title": "Writing home",
+      "description": "Folder containing vault/, memory/, jobs/ and plugin/ (this repo).",
+      "default": "/home/wan/Workspace/My/agents/writing",
+      "required": true
+    }
+  }
+}
