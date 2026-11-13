@@ -81,3 +81,6 @@ End with a short summary:
 - the next step (`/writing:apply` to write it to the original).
 
 Keep chat output lean. The full reasoning lives in the job's `decisions.md`.
+
+## Running to completion
+- Never schedule wake-ups, cron jobs, reminders or polling loops. Subagents and background commands notify you when they finish. Wait for those notifications, and once the run is done, end it with the summary.

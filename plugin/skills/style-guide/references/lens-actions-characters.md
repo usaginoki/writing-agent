@@ -10,7 +10,7 @@ Routine (diagnose, analyze, rewrite): (1) underline first 7-8 words (skip a 4-5 
 ## Checks (in order of payoff)
 
 ### AC1 · First-seven-words test (abstract subject, late verb)
-- **Symptom:** In the first 7-8 words (after a short opener) the simple subject is an abstract noun (esp. a nominalization) or no verb has appeared; verb is vague (was based, occurred, means, is).
+- **Symptom:** In the first 7-8 words (after a short opener) the simple subject is an abstract noun (esp. a nominalization) or no verb has appeared; verb is vague (was based, occurred, means, is). **Gerund and infinitive subjects count too:** "Successfully implementing a curriculum depends on…", "To reach agreement requires…" still put an action in the subject position. Converting a nominalization into a gerund ("the implementation of X" → "implementing X") is not a fix; find the character who implements and make it the subject.
 - **Fix:** 1) Name the characters (people, groups, institutions first). 2) Find the action each performs. 3) Make character the simple subject of that action's verb. 4) Link clauses (AC5). 5) If no character exists, supply one (AC4).
 - **✗/✓:** The outsourcing of high-tech work to Asia by corporations means the loss of jobs for many American workers. -> Many American workers are losing their jobs because corporations are outsourcing their high-tech work to Asia.
 - **Leave it when:** the subject is a short familiar concept acting as virtual character (AC3), a short back-pointing summary noun (AC2 keep-cases), or the passive is justified (AC6/AC7). Aim at "most" clauses, not all; no mechanical personification. Do not flag a sentence only because it is long.

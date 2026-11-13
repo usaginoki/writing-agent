@@ -23,9 +23,16 @@ Fix what readers meet first and what frames everything else. A perfect sentence 
 ## Quick mode triage (one pass, no subagents)
 1. Run `textstats.py` on the text.
 2. Global light: can you find the main point in the first paragraph (or the first section of a long text)? If not, note it as an assumed question. Don't restructure in quick mode unless the text is short (under ~300 words) and the fix is obvious.
-3. For every sentence flagged NOM, PASS, EXPL, INTRO, LONG or META, plus every paragraph whose topic string is scattered, apply the matching checks: `lens-actions-characters` AC1–AC4 and `lens-concision-shape` (the checks it marks for quick mode).
-4. Unflagged sentences: one read for redundancy and obvious implications.
-5. Keep the paragraph structure unless a paragraph has no point at all.
+3. For every sentence flagged NOM, PASS, EXPL, INTRO, LONG or META, apply the matching checks: `lens-actions-characters` AC1–AC4 and `lens-concision-shape` (the checks it marks for quick mode).
+4. **Flow, for every paragraph of two or more sentences, flagged or not** (`lens-cohesion-emphasis`):
+   - Read the topic string (the textstats `topic_string`: each sentence's first ~7 words). Do the subjects name the same few characters or concepts? If they wander, choose the paragraph's topic and make it the subject of most sentences.
+   - Old before new: does each sentence open with something the reader has already met, and end with what is new or complex? Reorder (or use the passive) where it doesn't.
+   - Stress: does each sentence end on its most important words? Move trailing qualifications, hedges and attributions to the left.
+   - Sentences that repeat the same topic back to back can often be **combined** into one, with a shared subject or coordinated verbs.
+   - Vague back-references (`lens-cohesion-emphasis` CE12): a sentence that opens with a bare *this, that, it, these, because of this, for this reason* makes the reader reconstruct the link. Name what it points to: "This delay…", "Because the fleet was overextended…".
+5. **Point first, for every sentence of about 25+ words or one that opens with an introductory phrase or clause, flagged or not** (`lens-concision-shape` CS1, CS2): find the sentence's claim. If it sits in the middle or at the end, open with it in a short main clause, and attach the explanation or support after it. The exception is a deliberately suspended sentence at a key moment ([[Suspend the climax with parallel openers]]).
+6. Unflagged sentences: one read for redundancy and obvious implications.
+7. Keep the paragraph structure unless a paragraph has no point at all.
 
 ## Thorough mode
 1. Run textstats, then dispatch four `writing:diagnostician` agents in parallel (lenses: global, cohesion-emphasis, actions-characters, concision-shape). Pass each one the text path, the textstats, the intent and the relevant preferences.
@@ -42,4 +49,4 @@ Fix what readers meet first and what frames everything else. A perfect sentence 
 - **Elegance vs. clarity:** clarity first. Ornament never at the cost of a clear subject and verb.
 
 ## Proportion
-Don't rewrite what works. Change the fewest words that fix the reader's problem. A good edit is invisible in the author's voice. Track every non-trivial change's reason in `decisions.md` (lens + check id), so the user can ask "why?".
+Leave sentences that pass every check alone. **A sentence that fails a check gets rewritten fully, not patched.** Swapping one noun for a gerund, or moving one phrase while the abstract subject stays, is the most common under-edit. Rebuild the sentence around its character and action, then restore the author's terms and voice. Combining or splitting sentences is fine when the flow checks call for it. A good edit reads in the author's voice, but it doesn't have to be small. Track every non-trivial change's reason in `decisions.md` (lens + check id), so the user can ask "why?".

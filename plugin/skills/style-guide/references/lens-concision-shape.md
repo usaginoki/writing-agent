@@ -1,6 +1,6 @@
 # Lens: Concision & shape
 **Question this lens asks:** Can this sentence lose words without losing meaning, and does it reach its subject, verb and point fast and then keep a visible shape?
-**Level:** sentence · **Quick mode:** CS1 (long openers), CS2 (point-first), CS5 (sprawl), CS8 (deadwood: tics, pairs, modifiers, categories), CS9 (metadiscourse). Skip the rest unless a signal fires.
+**Level:** sentence · **Quick mode:** CS1 (long openers), CS2 (point-first: every sentence of ~25+ words or with an introductory opener, flagged or not), CS5 (sprawl), CS8 (deadwood: tics, pairs, modifiers, categories), CS9 (metadiscourse). Skip the rest unless a signal fires.
 **Mechanical hints:** LONG (>35 words) -> CS1-CS6; INTRO (long opener) -> CS1; NOM -> CS3, CS8; META -> CS9; HEDGE -> CS11 (calibrate, do not purge); INT -> CS11; NEG×n -> CS10; DNEG -> CS10 (stacked); EXPL -> CS3 and CS8 (empty subject delays the real one).
 Signals only point; confirm by reading. Length alone is not the fault: sprawl is. Sentences of 20+ words are fine if shaped.
 

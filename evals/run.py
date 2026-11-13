@@ -45,10 +45,15 @@ def run_case(case: Path, out: Path, mode: str, judge_model: str) -> dict:
     d.mkdir(parents=True)
     original = d / "original.md"
     original.write_text(section(case.read_text(), "Original") + "\n")
-    w = subprocess.run(["claude", "-p", "--agent", "writing:writer", "--allowedTools", *TOOLS, "--",
-                        f"/writing:edit {original} {mode} --trust"],
-                       cwd=d, capture_output=True, text=True, timeout=1200)
-    (d / "writer.log").write_text(w.stdout + w.stderr)
+    try:
+        w = subprocess.run(["claude", "-p", "--agent", "writing:writer", "--allowedTools", *TOOLS, "--",
+                            f"/writing:edit {original} {mode} --trust"],
+                           cwd=d, capture_output=True, text=True, timeout=1200)
+        (d / "writer.log").write_text(w.stdout + w.stderr)
+    except subprocess.TimeoutExpired as e:
+        (d / "writer.log").write_text(f"TIMEOUT after {e.timeout}s\n{e.stdout or ''}")
+        if not find_job(original.resolve()):
+            return {"id": cid, "error": f"writer timed out after {e.timeout}s"}
     job = find_job(original.resolve())
     if not job:
         return {"id": cid, "error": "no job created"}

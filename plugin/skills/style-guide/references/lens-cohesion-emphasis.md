@@ -1,6 +1,6 @@
 # Lens: Cohesion, coherence & emphasis
 **Question this lens asks:** Does each sentence start on what the reader already knows and end on what is new and worth stressing, and do the subjects across the paragraph stay on a few consistent topics?
-**Level:** sentence-to-sentence and paragraph · **Quick mode:** CE1 (old-new pairs), CE3 (topic string from `topic_string`), CE5 (stress at sentence ends), CE7 (faked connectors). Run CE2, CE4, CE6, CE8-CE11 only in full mode.
+**Level:** sentence-to-sentence and paragraph · **Quick mode:** CE1 (old-new pairs), CE3 (topic string from `topic_string`), CE5 (stress at sentence ends), CE7 (faked connectors), CE12 (vague back-references). Run CE2, CE4, CE6, CE8-CE11 only in full mode.
 **Mechanical hints:** (textstats signals; they only point, they never prove)
 - `topic_string`: read the first-7-word openings of consecutive sentences. Unrelated, abstract, long, or randomly shifting openers point to CE3/CE4. Identical openers across many sentences point to CE9 (usually fine).
 - `PASS`: a passive candidate is often a deliberate old-first move. Check it against CE1 before flagging it.
@@ -118,6 +118,17 @@ When clarity principles clash, old-before-new beats characters-as-subjects and a
 - **✗/✓:** ✗ ...but more often you cannot represent it in that kind of sentence. → ✓ ...but more often you cannot.
 - **Leave it when:** the repetition is a deliberate rhetorical echo (the elegance lens covers it); a pronoun would be ambiguous; a technical or legal term must stay exact.
 - **Vault:** [[Avoid ending a sentence on a repeated word]] · [[Stress test]]
+
+### CE12 · Vague back-reference
+- **Symptom:** A sentence opens with a bare *this, that, it, these, such*, or *because of this / for this reason / as a result of this*, and the referent is a whole clause or an idea, not one noun. The reader has to reconstruct what "this" is.
+- **Fix:**
+  1. Find what the reference points to.
+  2. Name it with a short summarizing noun phrase in the opening (old-information) position: "This delay…", "These losses…".
+  3. Or state the cause outright: "Because the fleet was overextended, …".
+  4. If the previous sentence ended on the right noun, a summative modifier can carry the link: "…, a delay that…".
+- **✗/✓:** ✗ The army was spread across three fronts. Because of this, the invasion failed. → ✓ The army was spread across three fronts. Because its forces were so divided, the invasion failed.
+- **Leave it when:** the pronoun has one unmistakable noun antecedent in the previous sentence; the summary noun would just repeat the preceding words; in very short notes or lists.
+- **Vault:** [[Put reference signals at the start of the sentence]] · [[Begin sentences with old information]] · [[Extend sentences with resumptive, summative, and free modifiers]]
 
 ## Rewrite patterns (cheat table)
 | shape before | shape after |
