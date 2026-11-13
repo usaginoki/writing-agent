@@ -27,7 +27,8 @@ Inside any session, the skills are also available as commands:
 ## Safety model
 - **Your files are never edited in place.** Each task gets `jobs/<date>-<slug>/`, holding `original.*`, `v0…vN`, `variants/`, `questions.md`, `decisions.md`, `diffs/` and `feedback/`. `/writing:apply` checks that the original hasn't changed since the snapshot, shows the diff, and writes only with your approval, or with `--apply-ok` given in advance.
 - **docx** files are never overwritten. You get `<name>.revised.docx` next to the original.
-- **Guard hook** (`plugin/hooks/guard.py`): in writer sessions, writes to `jobs/` and `memory/` go through freely. Writes to your files, the skills, the agents and the hook itself trigger a permission prompt (see `decide()`).
+- **Guard hook** (`plugin/hooks/guard.py`): in writer sessions, writes to `jobs/` and `memory/` go through freely. Writes to your files, the skills, the agents and job manifests trigger a permission prompt, and the hook can never edit itself.
+- **Approvals come only from you.** A `UserPromptSubmit` hook records a grant when *you* type `--apply-ok` on a `/writing:edit` or `/writing:write` command line, or run `/writing:ingest-source`. The grant names the specific file, lasts for that session (up to 12 h), and lives in `.approvals/`, which the agent may not write to. A pre-approved write also requires the file to be unchanged since the job's snapshot. So neither the agent nor a prompt injection inside a document it edits can approve its own writes. Run `python3 plugin/hooks/test_guard.py` to check every case, attacks included.
 
 ## Layout
 ```

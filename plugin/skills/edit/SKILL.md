@@ -12,7 +12,7 @@ Arguments: `$ARGUMENTS`. `HOME` = `${user_config.home_dir}`. Load the `style-gui
 - **Target:** a file path, or pasted text (in the arguments or earlier in the conversation).
 - **Mode:** `quick` or `thorough`. If unstated, follow the writer's defaults (thorough for papers, essays and anything over ~800 words; quick for notes and short texts).
 - **Trust:** `--trust` / `--ask`. Defaults: on in quick mode, off in thorough mode.
-- `--apply-ok` → the job is created with `--apply preapproved`.
+- `--apply-ok` → the job is created with `--apply preapproved`. Pre-approval only counts when the **user typed** `--apply-ok` in their own prompt this session (a hook records it; the agent cannot grant it). Otherwise the guard asks at apply time, which is expected. Never add `--apply preapproved` on your own initiative.
 - **Genre:** infer it from the form and extension (`.tex` → paper) unless given.
 - If the user asks only for a review or critique ("what's wrong with this?"), stop after step 3 and report the findings. Don't revise.
 
@@ -21,7 +21,7 @@ Arguments: `$ARGUMENTS`. `HOME` = `${user_config.home_dir}`. Load the `style-gui
    `python3 HOME/plugin/tools/job.py new <path|-> --mode <m> --trust|--no-trust --apply <ask|preapproved> --genre <g>`
    For pasted text, pipe it in with `-`. Note the printed job directory (`JOB`).
 2. Read the memory files: `memory/preferences.md`, plus `memory/genres/<genre>.md` if it exists.
-3. Write the **intent statement** (purpose · reader · main point) into the `# Intent` section of `JOB/manifest.md`. Infer it from the text.
+3. Write the **intent statement** (purpose · reader · main point) into `JOB/intent.md`. Infer it from the text.
    - Thorough with trust off: confirm it with the user in one AskUserQuestion. Offer your inferred version, an alternative reading if the text is ambiguous, and "let me state it".
    - Otherwise: log it as an `assumed` question (Q1) in `questions.md`.
 4. For docx, tell the user once that complex formatting may not survive and that the result will be a `.revised.docx` beside the original.

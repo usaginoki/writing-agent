@@ -1,6 +1,17 @@
 {
-  "description": "Writing agent guard: user files and skills need approval; jobs/ and memory/ are free.",
+  "description": "Writing agent guard: user files and skills need approval; jobs/ and memory/ are free; approvals come only from the user's own prompt.",
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\" --prompt",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit",

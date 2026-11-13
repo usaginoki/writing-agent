@@ -11,7 +11,7 @@ Arguments: `$ARGUMENTS`. `HOME` = `${user_config.home_dir}`. Conventions: `HOME/
 
 ## 1. Prepare
 1. Choose a slug: `<short-title>-<author(s)>`, lowercase with hyphens. Confirm it with the user.
-2. Run `touch HOME/jobs/.ingest-active`, which lets the guard allow vault writes during the ingest. Remove the file at the end, **even on failure**.
+2. Vault writes are allowed for this session because the user typed `/writing:ingest-source` themselves (a hook records the grant; it expires after 12 hours). If the guard still asks, the grant is missing, so ask the user to re-run the command.
 3. Create `HOME/vault/<slug>/_source/` and **move** the source file into it (ask first if the file lives outside HOME).
 
 ## 2. Extract
@@ -54,4 +54,4 @@ This is the same brief used for the Williams vault. The scope paragraph changes 
 - Add the source to the list of current sources in the `style-guide` SKILL.md. That is a skill edit too, so it falls under the same approval.
 
 ## 7. Finish
-Run `rm HOME/jobs/.ingest-active`. Report the number of notes by type, the link-check result, and the proposal status.
+Report the number of notes by type, the link-check result, and the proposal status.

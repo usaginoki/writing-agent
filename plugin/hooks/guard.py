@@ -1,19 +1,28 @@
-"""PreToolUse guard for the writing agent (Edit | Write | NotebookEdit).
+"""Write guard for the writing agent.
 
-Enforces two promises:
+Two hook events:
+  UserPromptSubmit (`guard.py --prompt`): records approvals that only the USER can grant, derived from
+      the text the user typed (`--apply-ok`, `/writing:ingest-source`). Stored in HOME/.approvals/,
+      which the agent may never write to. Approval therefore cannot be forged by the agent, or by a
+      prompt injection inside a document it is editing.
+  PreToolUse on Edit|Write|MultiEdit|NotebookEdit (default): decides allow / ask / deny per path.
+
+Promises enforced:
   1. The user's own files are never modified without approval (work happens in jobs/).
-  2. Skills/agents (the agent's "code") change only with explicit permission;
-     memory/ (the user's preferences) is freely editable.
+  2. Skills/agents change only with explicit permission; memory/ is freely editable.
+  3. Approval state (job manifests, .approvals/) is not agent-writable without the user's consent.
 
-Only acts inside writer sessions: the writer agent (agent_type "writing:…") or a session
-that registered itself via jobs/.active/<session_id>. Any other Claude session is untouched.
+Only acts inside writer sessions (agent_type "writing:…"); other Claude sessions are untouched.
 Stdlib only; runs with plain python3.
 """
 
+import hashlib
 import json
 import os
 import re
+import shlex
 import sys
+import time
 from pathlib import Path
 
 HOME = Path(os.environ.get("CLAUDE_PLUGIN_OPTION_HOME_DIR")
@@ -21,6 +30,8 @@ HOME = Path(os.environ.get("CLAUDE_PLUGIN_OPTION_HOME_DIR")
             or Path(__file__).resolve().parents[2]).resolve()
 JOBS, MEMORY, VAULT = HOME / "jobs", HOME / "memory", HOME / "vault"
 SKILLS, AGENTS, HOOKS = HOME / "plugin" / "skills", HOME / "plugin" / "agents", HOME / "plugin" / "hooks"
+APPROVALS = HOME / ".approvals"
+APPROVAL_TTL = 12 * 3600  # a grant from a prompt lasts for the working session, not forever
 
 
 def under(path: Path, root: Path) -> bool:
@@ -32,59 +43,129 @@ def under(path: Path, root: Path) -> bool:
 
 
 def is_writer_session(event: dict) -> bool:
-    if str(event.get("agent_type", "")).startswith("writing:"):
-        return True
-    sid = event.get("session_id")
-    return bool(sid) and (JOBS / ".active" / sid).exists()
+    return str(event.get("agent_type", "")).startswith("writing:")
 
 
-def preapproved_targets() -> set[Path]:
-    """Targets of jobs started with --apply-ok that haven't been applied yet."""
-    out = set()
-    for mf in JOBS.glob("*/manifest.md"):
-        front = dict(re.findall(r"^(\w+):\s*(.*)$", mf.read_text().split("\n---", 2)[0], re.M))
-        if front.get("apply") == "preapproved" and front.get("status") != "applied":
-            out.add(Path(front.get("target", "")).resolve())
+# ---------- approvals: written only from the user's own prompt ----------
+
+def grants(session_id: str | None) -> dict:
+    if not session_id:
+        return {}
+    f = APPROVALS / f"{session_id}.json"
+    try:
+        g = json.loads(f.read_text())
+    except (OSError, ValueError):
+        return {}
+    now = time.time()
+    out = {k: v for k, v in g.items() if isinstance(v, (int, float)) and now - v < APPROVAL_TTL}
+    if "apply_ok" in out:
+        out["targets"] = [str(x) for x in g.get("targets", [])]
     return out
 
 
-def ingest_active() -> bool:
-    return (JOBS / ".ingest-active").exists()
+def _command_targets(first_line: str, cwd: str) -> list[str]:
+    """Files named on the user's /writing:edit|write line: the first positional arg and any --out."""
+    try:
+        toks = shlex.split(first_line)
+    except ValueError:
+        toks = first_line.split()
+    found, positional_seen = [], False
+    for i, tok in enumerate(toks[1:], 1):
+        if tok == "--out" and i + 1 < len(toks):
+            found.append(toks[i + 1])
+        elif not tok.startswith("-") and not positional_seen and toks[i - 1] != "--out":
+            positional_seen = True
+            found.append(tok)
+    return [str((Path(cwd) / Path(f).expanduser()).resolve()) for f in found]
 
 
-def decide(path: Path) -> tuple[str, str]:
-    """Return (decision, reason). decision is "allow", "ask" or "deny".
+def record_prompt(event: dict) -> None:
+    prompt, sid = str(event.get("prompt", "")), event.get("session_id")
+    if not sid:
+        return
+    new = {}
+    first_line = prompt.lstrip().split("\n", 1)[0]
+    # Only the first line of a /writing: command counts, so text pasted below it can't grant anything.
+    if re.match(r"\s*/writing:(?:edit|write|apply)\b[^\n]*(?<![\w-])--apply-ok\b", prompt):
+        new["apply_ok"] = time.time()
+        new["targets"] = _command_targets(first_line, event.get("cwd", "."))
+    if re.match(r"\s*/writing:ingest-source\b", prompt):
+        new["ingest"] = time.time()
+    if not new:
+        return
+    APPROVALS.mkdir(exist_ok=True)
+    f = APPROVALS / f"{sid}.json"
+    old = grants(sid)
+    if "targets" in new:
+        new["targets"] = sorted(set(old.get("targets", [])) | set(new["targets"]))
+    f.write_text(json.dumps({**old, **new}))
+    for old in APPROVALS.glob("*.json"):  # prune stale grants
+        if time.time() - old.stat().st_mtime > 7 * 86400:
+            old.unlink(missing_ok=True)
 
-    TODO(user): write this policy (~10 lines). Available helpers:
-      under(path, ROOT)          ROOT in JOBS, MEMORY, VAULT, SKILLS, AGENTS, HOOKS, HOME
-      preapproved_targets()      set of user files the user pre-approved for this job
-      ingest_active()            True while /writing:ingest-source is running
-    Trade-offs to choose:
-      - skills/agents: "ask" lets you approve in-session; "deny" forces you to edit them yourself.
-      - hooks/ (this file): the agent editing its own guard is the riskiest write. Ask, or deny?
-      - vault/ outside ingest: knowledge, not code. Allow, or ask?
-      - user files: ask unless pre-approved. Should pre-approval also cover *new* files next to
-        the target (e.g. report.revised.docx), or only the exact target path?
-      - anything else under HOME (pyproject, tools/): ask?
-    The reason string is shown in the permission prompt, so make it say *why*.
 
-    Chosen policy (smoothest experience that keeps both promises):
-      jobs/, memory/ → allow · skills/, agents/ → ask · hooks/ → deny · vault/ → allow only while ingesting
+# ---------- pre-approved apply targets ----------
+
+def _front(mf: Path) -> dict:
+    return dict(re.findall(r"^(\w+):\s*(.*)$", mf.read_text().split("\n---", 2)[0], re.M))
+
+
+def _sha(p: Path) -> str:
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def preapproved_targets(session_id: str | None) -> set[Path]:
+    """Targets the user pre-approved: requires an --apply-ok grant from the user's prompt in THIS
+    session, a job created after that grant, and a target still identical to its snapshot
+    (or, for a new file, still nonexistent)."""
+    g = grants(session_id)
+    granted, allowed = g.get("apply_ok"), {Path(x) for x in g.get("targets", [])}
+    if not granted:
+        return set()
+    out = set()
+    for mf in JOBS.glob("*/manifest.md"):
+        m = _front(mf)
+        if m.get("apply") != "preapproved" or m.get("status") == "applied":
+            continue
+        try:
+            created = time.mktime(time.strptime(m.get("created", ""), "%Y-%m-%dT%H:%M:%S"))
+        except ValueError:
+            continue
+        if created < granted - 5:
+            continue
+        target, snap = Path(m.get("target", "")).resolve(), m.get("snapshot_sha256", "")
+        if target not in allowed:  # the grant names specific files; other jobs don't inherit it
+            continue
+        if snap == "-" and not target.exists():
+            out.add(target)
+        elif target.is_file() and snap == _sha(target):
+            out.add(target)
+    return out
+
+
+def decide(path: Path, session_id: str | None = None) -> tuple[str, str]:
+    """Return (decision, reason). Policy (smoothest experience that keeps the promises):
+      .approvals/ → deny · hooks/ → deny · job manifests & ingest marker → ask
+      jobs/, memory/ → allow · skills/, agents/ → ask · vault/ → allow only with an ingest grant
       pre-approved target (and its <stem>.revised<ext> sibling) → allow · everything else → ask
     """
-    if under(path, JOBS) or under(path, MEMORY):
-        return "allow", "writer workspace / user memory"
+    if under(path, APPROVALS):
+        return "deny", "approvals can only come from your own prompt, never from the agent"
     if under(path, HOOKS):
         return "deny", "the writer may not modify its own guard; edit plugin/hooks/ yourself"
+    if under(path, JOBS) and (path.name.lower() == "manifest.md" or path.name.startswith(".")):
+        return "ask", "job manifests hold approval state (target, apply mode); confirm this change"
+    if under(path, JOBS) or under(path, MEMORY):
+        return "allow", "writer workspace / user memory"
     if under(path, SKILLS) or under(path, AGENTS):
         return "ask", "this changes the writer's skills/agents, which needs your explicit permission"
     if under(path, VAULT):
-        if ingest_active():
+        if grants(session_id).get("ingest"):
             return "allow", "vault write during /writing:ingest-source"
         return "ask", "vault knowledge change outside an ingest"
-    for target in preapproved_targets():
+    for target in preapproved_targets(session_id):
         if path == target or path == target.with_name(f"{target.stem}.revised{target.suffix}"):
-            return "allow", f"pre-approved apply for {target.name}"
+            return "allow", f"pre-approved (--apply-ok) apply for {target.name}"
     if under(path, HOME):
         return "ask", "change to the writing agent's own files (outside jobs/ and memory/)"
     return "ask", "this writes to YOUR file outside the job workspace; apply only if you approve the change"
@@ -92,6 +173,12 @@ def decide(path: Path) -> tuple[str, str]:
 
 def main() -> None:
     event = json.load(sys.stdin)
+    if "--prompt" in sys.argv:
+        try:
+            record_prompt(event)
+        except OSError:
+            pass  # never block the user's prompt
+        return
     if os.environ.get("WRITING_GUARD_DEBUG"):
         with open(JOBS / ".guard-debug.log", "a") as log:
             log.write(json.dumps({k: event.get(k) for k in
@@ -106,7 +193,7 @@ def main() -> None:
     if not path.is_absolute():
         path = Path(event.get("cwd", ".")) / path
     try:
-        decision, reason = decide(path.resolve())
+        decision, reason = decide(path.resolve(), event.get("session_id"))
     except Exception as e:  # fail CLOSED: a crashing hook would otherwise let the write through
         decision, reason = "ask", f"guard could not decide ({type(e).__name__}: {e}); confirm manually"
     print(json.dumps({"hookSpecificOutput": {

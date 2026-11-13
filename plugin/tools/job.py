@@ -2,7 +2,8 @@
 
 Usage (WRITING_HOME defaults to the repo containing this file):
   job.py new <target|-> [--mode quick|thorough] [--trust|--no-trust] [--apply ask|preapproved]
-                        [--genre essay|notes|paper|other] [--slug SLUG]
+                        [--genre essay|notes|paper|other] [--slug SLUG] [--out PATH]
+      --out: for new drafts, the file the result will be applied to (recorded once, at creation).
       '-' reads pasted text from stdin (no target; result is delivered, not applied).
       Prints the job dir. Creates manifest.md, original.<ext>, v0.<ext>, questions.md, decisions.md.
   job.py list                      recent jobs with status
@@ -10,7 +11,9 @@ Usage (WRITING_HOME defaults to the repo containing this file):
   job.py check <job>               is the target unchanged since the snapshot? (exit 1 if changed)
   job.py hunks <job> <a> <b>       paragraph-level hunks as JSON (for review UI / terminal review)
   job.py diff <job> <a> <b>        unified diff, also saved to diffs/<a>-<b>.diff
-  job.py set <job> key=value ...   update manifest fields (e.g. apply=preapproved, status=applied)
+  job.py set <job> key=value ...   update manifest fields (status, current, applied_version …).
+                                   Approval fields (apply, target, snapshot_sha256, created) are
+                                   fixed at creation and cannot be changed.
 <job> may be a full path or a dir name under jobs/. Versions are names like v0, v1, v2 (extension inferred).
 """
 
@@ -79,7 +82,7 @@ def to_markdown_docx(src: Path, dst: Path) -> None:
 
 def cmd_new(args: list[str]) -> None:
     target = args[0]
-    opts = {"mode": "thorough", "apply": "ask", "genre": "other", "slug": None, "trust": None}
+    opts = {"mode": "thorough", "apply": "ask", "genre": "other", "slug": None, "trust": None, "out": None}
     it = iter(args[1:])
     for a in it:
         if a in ("--trust", "--no-trust"):
@@ -123,21 +126,25 @@ def cmd_new(args: list[str]) -> None:
     if work_ext:
         shutil.copy2(job / f"original{work_ext}", job / f"v0{work_ext}")
 
+    target, snapshot = (str(src), sha(src)) if src else ("(pasted)", "-")
+    if opts["out"]:
+        out = Path(opts["out"]).expanduser().resolve()
+        target, snapshot = str(out), (sha(out) if out.exists() else "-")
     data = {
         "created": dt.datetime.now().isoformat(timespec="seconds"),
-        "target": str(src) if src else "(pasted)",
+        "target": target,
         "format": ext.lstrip("."),
         "genre": opts["genre"],
         "mode": opts["mode"],
         "trust": str(trust).lower(),
         "apply": opts["apply"],
-        "snapshot_sha256": sha(src) if src else "-",
+        "snapshot_sha256": snapshot,
         "current": "v0",
         "status": "intake",
     }
-    body = ("\n# Intent\n<!-- purpose · audience · main point — the reference for meaning checks -->\n\n"
-            "# Notes\n")
-    write_manifest(job, data, body)
+    write_manifest(job, data, "\n# Notes\n")
+    (job / "intent.md").write_text(
+        "# Intent\n<!-- purpose · reader · main point: the reference for meaning checks -->\n")
     (job / "questions.md").write_text(
         "# Questions\n<!-- Format per entry (heading starts at column 0):\n  ## Q<n> · open|assumed|answered · <topic>\n<question>\n"
         "- options: a) … b) …\n**Assumed:** …   (trust mode: what the agent went with)\n**Answer:** …   (you fill this in)\n-->\n")
@@ -206,11 +213,16 @@ def cmd_diff(args: list[str]) -> None:
     print(d)
 
 
+PROTECTED = {"apply", "target", "snapshot_sha256", "created"}
+
+
 def cmd_set(args: list[str]) -> None:
     job = resolve(args[0])
     m = read_manifest(job)
     for kv in args[1:]:
         k, v = kv.split("=", 1)
+        if k in PROTECTED:
+            sys.exit(f"refused: '{k}' is fixed at job creation (approval state); start a new job instead")
         m[k] = v
     write_manifest(job, m)
     print(json.dumps(m, indent=1))

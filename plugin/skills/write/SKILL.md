@@ -12,7 +12,7 @@ The principles are revision tools, not drafting rules ([[Draft first then revise
 
 ## 1. Intake
 - Create a job from the source material: `job.py new <notes-file|-> --mode <m> ...`. For a bare prompt, pipe it in with `-`. The material becomes `v0` (the notes), not the draft.
-- `--out <path>`: the eventual target for the draft. Store it in the manifest (`job.py set JOB target=<abs path> snapshot_sha256=-`). Apply will create the file and won't overwrite an existing one without asking.
+- `--out <path>`: the eventual target for the draft. Pass it at creation: `job.py new <notes|-> --out <abs path> ...`. Apply creates the file, and won't overwrite an existing one without asking. The target can't be changed later.
 - Read memory (preferences and genre).
 - Establish the intent: purpose · reader · **main point**. If the material doesn't yield a main point, that's a decision. Ask (trust off), or propose the strongest candidate and log it (trust on).
 
