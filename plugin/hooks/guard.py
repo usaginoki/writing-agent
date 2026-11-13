@@ -171,8 +171,29 @@ def decide(path: Path, session_id: str | None = None) -> tuple[str, str]:
     return "ask", "this writes to YOUR file outside the job workspace; apply only if you approve the change"
 
 
+def decide_bash(cmd: str) -> tuple[str, str] | None:
+    """Defense in depth for shell commands in writer sessions: the file guard only sees Edit/Write,
+    so block shell routes to the approval state and the guard itself. None = no opinion."""
+    low = cmd.lower()
+    if ".approvals" in low:
+        return "deny", "shell access to approval state is not allowed; approvals come from your prompt"
+    if "plugin/hooks" in low:
+        return "deny", "the writer may not touch its own guard from the shell"
+    if "manifest.md" in low or ".ingest" in low:
+        return "ask", "this shell command touches job approval state (manifest); confirm it"
+    return None
+
+
 def main() -> None:
     event = json.load(sys.stdin)
+    if event.get("tool_name") == "Bash":
+        if is_writer_session(event):
+            verdict = decide_bash(str(event.get("tool_input", {}).get("command", "")))
+            if verdict:
+                print(json.dumps({"hookSpecificOutput": {
+                    "hookEventName": "PreToolUse", "permissionDecision": verdict[0],
+                    "permissionDecisionReason": f"[writing guard] {verdict[1]}"}}))
+        return
     if "--prompt" in sys.argv:
         try:
             record_prompt(event)

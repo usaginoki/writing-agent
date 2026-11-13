@@ -46,7 +46,23 @@ SUBORD_OPENERS = re.compile(r"^(?:although|though|because|since|while|when|where
                             r"as|despite|in|on|at|for|with|by|through|during|given|considering|according)\b", re.I)
 
 
+LATEX_SKIP_ENVS = r"(?:table|tabular|tabularx|longtable|figure|equation|align|gather|multline|verbatim|lstlisting|minted|tikzpicture|thebibliography)\*?"
+
+
+def strip_latex(text: str) -> str:
+    if "\\begin{document}" in text:                                   # drop the preamble
+        text = text.split("\\begin{document}", 1)[1]
+    text = re.sub(r"(?<!\\)%.*", "", text)                             # comments
+    text = re.sub(rf"\\begin\{{({LATEX_SKIP_ENVS})\}}.*?\\end\{{\1\}}", "\n\n", text, flags=re.S)
+    text = re.sub(r"\\item\b(?:\[[^\]]*\])?", "\n\n", text)            # each item is its own unit
+    text = re.sub(r"\\(?:begin|end)\{[^}]*\}(?:\[[^\]]*\])?", "\n\n", text)
+    text = re.sub(r"\\(?:sub)*section\*?\{([^}]*)\}", r"\n\n\1.\n\n", text)
+    return text
+
+
 def strip_markup(text: str) -> str:
+    if "\\begin{" in text or "\\section" in text:
+        text = strip_latex(text)
     text = re.sub(r"```.*?```", " ", text, flags=re.S)            # code fences
     text = re.sub(r"\$\$.*?\$\$|\$[^$]+\$", " MATH ", text, flags=re.S)  # math
     text = re.sub(r"\\(?:cite|ref|eqref|label|autoref)\w*\{[^}]*\}", "", text)

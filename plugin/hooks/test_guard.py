@@ -103,6 +103,17 @@ def main() -> None:
 
         prompt(home, "/writing:ingest-source book.pdf")
         check("vault with ingest grant", write(home, home / "vault/src/n.md"), "allow")
+        def bash(cmd, agent_type="writing:writer"):
+            ev = {"session_id": "S", "tool_name": "Bash", "tool_input": {"command": cmd}}
+            if agent_type:
+                ev["agent_type"] = agent_type
+            out = hook(home, ev)
+            return json.loads(out)["hookSpecificOutput"]["permissionDecision"] if out else "(none)"
+        check("ATTACK shell write to .approvals", bash(f"echo '{{}}' > {home}/.approvals/S.json"), "deny")
+        check("ATTACK shell edit of guard", bash(f"sed -i 's/deny/allow/' {home}/plugin/hooks/guard.py"), "deny")
+        check("ATTACK shell edit of a manifest", bash(f"sed -i 's/ask/preapproved/' {home}/jobs/plain/manifest.md"), "ask")
+        check("normal tool command passes through", bash(f"python3 {home}/plugin/tools/job.py list"), "(none)")
+        check("non-writer shell untouched", bash("cat .approvals/x", agent_type=None), "(none)")
         check("non-writer session untouched", write(home, user / "random.md", agent_type=None), "(none)")
     sys.exit(1 if fails else 0)
 
